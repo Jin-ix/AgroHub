@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repeat Offender Customers (Appearing at least 5 Times)</title>
+    <link rel="stylesheet" href="stylesdisplay.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .button-container .btn {
+            padding: 6px 12px;
+            margin: 0 5px;
+            transition: all 0.3s ease-in-out;
+        }
+        .button-container .btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Repeat Offender Customers (Appearing at least 5 Times)</h2>
+
+    <?php
+    include('connection.php');
+
+    try {
+        // Prepare SQL query with JOIN to validate customer name with the seller table
+        $sql = "SELECT pc.customerName 
+                FROM (SELECT customerName, COUNT(*) AS num_complaints 
+                      FROM process_complaint 
+                      GROUP BY customerName) AS counts 
+                JOIN seller s ON counts.customerName = s.customerName 
+                WHERE counts.num_complaints >= 5";
+        $stmt = $con->prepare($sql);
+
+        // Execute query
+        $stmt->execute();
+
+        // Bind variables to the result set
+        $stmt->bind_result($customerName);
+
+        // Initialize an array to store customer details
+        $customers = array();
+
+        // Fetch data
+        while ($stmt->fetch()) {
+            $customers[] = $customerName;
+        }
+
+        // Close the statement
+        $stmt->close();
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+    }
+    ?>
+
+    <?php if (empty($customers)) : ?>
+        <div class="alert-box">
+            <strong>No repeat offenders found with 5 or more complaints.</strong>
+        </div>
+    <?php else : ?>
+        <table class="complaint-table table table-bordered">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($customers as $customer) : ?>
+                    <tr>
+                        <td><?= htmlspecialchars($customer) ?></td>
+                        <td class="button-container">
+                            <button class="btn btn-danger" id="ban_<?= htmlspecialchars($customer) ?>">Ban</button>
+                            <button class="btn btn-warning" id="block_<?= htmlspecialchars($customer) ?>">Block</button>
+                            <button class="btn btn-success verify-customer" data-customer="<?= htmlspecialchars($customer) ?>">Verify</button>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+
+    <!-- Modal for Image Preview -->
+    <div id="imageModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Image Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Image will be displayed here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+        // AJAX request for customer verification
+        $('.verify-customer').click(function() {
+            var customerName = $(this).data('customer');
+            $.ajax({
+                url: 'verify_seller.php',
+                type: 'POST',
+                data: { customer_name: customerName },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    });
+    </script>
+
+</body>
+</html>

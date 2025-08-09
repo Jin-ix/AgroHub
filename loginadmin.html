@@ -1,0 +1,208 @@
+<?php
+session_start();
+
+$servername = "localhost";
+$username = "root"; // Default XAMPP MySQL username
+$password = ""; // Default XAMPP MySQL password
+$dbname = "AGROHUB";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$login_error = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $user = $_POST['username'];
+    $pass = $_POST['password'];
+
+    // SQL query to fetch user details
+    $sql = "SELECT * FROM users WHERE username = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        // Verify password
+        if (password_verify($pass, $row['password'])) {
+            $_SESSION['username'] = $user;
+            header("Location: menu.html");
+            exit();
+        } else {
+            $login_error = "Invalid password.";
+        }
+    } else {
+        $login_error = "No user found.";
+    }
+    $stmt->close();
+}
+$conn->close();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow-x: hidden;
+        }
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .background {
+            background-image: url('wallhaven-j5jvxy.jpg'); /* Add your background image URL here */
+            background-size: cover;
+            background-position: center;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            filter: grayscale(80%) brightness(70%);
+            transform: translateZ(0);
+            animation: parallax 25s ease-in-out infinite alternate;
+        }
+        @keyframes parallax {
+            0% { transform: translateY(-3px); }
+            100% { transform: translateY(3px); }
+        }
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            animation: slideIn 0.5s ease forwards;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            filter: blur(5px);
+        }
+        .login-container:hover {
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+            filter: blur(0);
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        h2 {
+            text-align: center;
+            transition: all 0.3s ease;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: fadeIn 1s ease forwards;
+            opacity: 0;
+        }
+        .logo img {
+            max-width: 100px; /* Adjust the maximum width of your logo */
+            height: auto;
+            transition: all 0.3s ease;
+        }
+        input[type="text"], input[type="password"] {
+            width: calc(100% - 20px);
+            padding: 15px;
+            margin: 15px 0;
+            border: none;
+            border-bottom: 2px solid #ccc;
+            border-radius: 0;
+            box-sizing: border-box;
+            background: transparent;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            color: #555;
+            outline: none;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-bottom: 2px solid #007bff;
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            margin: 20px 0;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            outline: none;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .link a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .link a:hover {
+            color: #0056b3;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-container">
+        <div class="background"></div>
+    </div>
+    <div class="login-container">
+        <div class="logo">
+            <!-- Add your logo here -->
+            <img src="DOC-20240312-WA0051-removebg-preview-bicubic.png" alt="Logo">
+        </div>
+        <h2>Login</h2>
+        <?php if ($login_error): ?>
+            <p class="error"><?php echo $login_error; ?></p>
+        <?php endif; ?>
+        <form action="login.php" method="post">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="submit" value="Login">
+        </form>
+    </div>
+</body>
+</html>
