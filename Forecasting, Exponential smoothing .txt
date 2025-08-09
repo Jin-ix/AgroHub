@@ -1,0 +1,87 @@
+Forecasting, Exponential smoothing for seasonal data, exponential smooThe mean forecast method predicts future values as the average of all past observations. It's one of the simplest forecasting methods.
+
+Formula:
+𝑦^𝑡+ℎ=1𝑛∑𝑖=
+1
+𝑛
+𝑦
+𝑖
+y
+^
+​
+  
+t+h
+​
+ = 
+n
+1
+​
+ ∑ 
+i=1
+n
+​
+ y 
+i
+​
+ 
+where:
+
+𝑦
+^
+𝑡
++
+ℎ
+y
+^
+​
+  
+t+h
+​
+  is the forecasted value at time 
+𝑡
++
+ℎ
+t+h.
+𝑛
+n is the number of historical observations.
+𝑦
+𝑖
+y 
+i
+​
+  is the actual historical value at time 
+𝑖
+i.
+Example:
+Suppose we have monthly sales data for the past 6 months: [100, 120, 130, 115, 140, 125]. The mean forecast for the next month would be:
+𝑦
+^
+𝑡
++
+1
+=
+100
++
+120
++
+130
++
+115
++
+140
++
+125
+6
+=
+121.67
+y
+^
+​
+  
+t+1
+​
+ = 
+6
+100+120+130+115+140+125
+​
+ =121.67thers.
